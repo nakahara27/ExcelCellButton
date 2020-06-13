@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang='ja'>
+<head>
+	<meta charset='UTF-8'>
+	<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+	<title>テキスト文字→コピーボタン化</title>
+	<link rel='stylesheet' type='text/css' href='css/reset.css' />
+	<link rel='stylesheet' type='text/css' href='css/sanitize.css' />
+	<link rel='stylesheet' type='text/css' href='css/style.css' />
+</head>
+<body>
+	<div class='root'>
+		<div class='root_top'>
+			<div class='root_top_title'>
+				<p class='root_top_title_main'>テキスト文字 → コピーボタン化 ツール</p>
+				<button class='btn_help' id='btn_help'>？</button>
+			</div>
+			<div class='root_top_panel'>
+				<div>
+					<div class='root_top_panel_mode'>
+						<span>動作モード：</span>
+						<input id='rdo_mode_basic' type='radio' name='rdo_mode' class='rdo_mode'>
+						<label class='lbl_tab' for='rdo_mode_basic'>ベーシック</label>
+						<input id='rdo_mode_pair' type='radio' name='rdo_mode' class='rdo_mode'>
+						<label class='lbl_tab' for='rdo_mode_pair'>ペア</label>
+					</div>
+					<div>
+						<button class='btn_align_change' id='btn_align_change'></button>
+					</div>
+					<div>
+						<button class='btn_clear' id='btn_clear'>クリア</button>
+					</div>
+				</div>
+				<div>
+					<span class='spn_makeCopyButton'>Excelなどでコピー操作後に</span>
+					<button class='btn_makeCopyButton' id='btn_makeCopyButton'>コピーボタン生成</button>
+				</div>
+			</div>
+		</div>
+		<div class='root_main'><!-- 生成されたボタン枠 -->
+			<div><!-- 動的生成ボタンappend枠 -->
+			</div>
+		</div>
+	</div>
+	<div class='root_pasted'><!-- 貼り付けたテキスト枠（非表示） -->
+		<textarea class='txa_text_pasted' id='txa_text_pasted'></textarea>
+	</div>
+	<script	src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script>
+		$(function(){
+			fn_initialSet();//初期化処理（localstrorage呼び出し等）
+
+			//「ヘルプ」ボタン クリック時
+			$('#btn_help').on('click',function(){
+				s_msg='【使い方】\n';
+				s_msg+='クリップボードのテキスト文字をコピーボタン化するツールです\n';
+				s_msg+='主にExcelのセルを他のアプリに貼り付けるのに便利です\n';
+				s_msg+='▽動作モード\n';
+				s_msg+='・ベーシック：クリップボードのタブで区切られたテキスト文字がボタン化されます\n';
+				s_msg+='・ペア：Excelで2列選択→左列がボタン表示内容、右列がコピー内容となります';
+				alert(s_msg);
+			});
+
+			//寄せ方向（← →）切り替え
+			$('#btn_align_change').on('click',function(){
+				localStorage.setItem('btn_align_change',$('#btn_align_change').html());//寄せ方向（← →）をlocalStorageに記録
+				fn_clickBtnAlignChange();//「右寄せ」処理
+			});
+
+			//クリア ボタンクリック
+			$('#btn_clear').on('click',function(){
+				localStorage.clear();//localStorage全削除
+				fn_initialSet();//初期化処理
+			});
+
+			//「コピーボタン作成」ボタン クリック時
+			$('#btn_makeCopyButton').on('click',function(){
+					fn_clickMakeCopyButton();//「貼り付け」処理
+			});
+
+			//生成ボタン クリック時======================================================================
+			//buttonのval値をクリップボードに設定
+			$(document).on('click','.btn_createdCopyButton',function(){
+				const obj_this=$(this);
+				str_copy=obj_this.val();//クリップボードにコピーされる文字列
+				str_copy=str_copy.replace(/<br>/g,"\n");//<br>→改行
+				navigator.clipboard.writeText(str_copy);//クリップボードにコピー
+				$('.btn_createdCopyButton').css('color','black');//全生成ボタン色を黒に
+				$(obj_this).css('color','red');//クリックされた生成ボタンだけ赤
+			});
+
+			//初期化処理（localstorage呼び出し等）=======================================================
+			function fn_initialSet(){
+				if(localStorage.getItem('rdo_mode')){//localStorageに「rdo_mode」keyがある時
+					fn_loadLocalStorage();//localStorageからデータを呼び出す
+					fn_clickBtnAlignChange();//btn_align_changeをもとに右寄せ処理
+					fn_createButtons();//txa_text_pastedをもとにコピー ボタン生成
+				}else{//localStorageがない時
+					$('#rdo_mode_basic').prop('checked',true);//「モード」radioは「ベーシック」
+					$('#btn_align_change').html('→');//寄せ方向は「→」
+					$('.root').css('text-align','left');//全体を左寄せ
+					$('.root_main>div').html('');//生成ボタンクリア
+				}
+			}
+
+			//「貼り付け」処理============================================================================
+			async function fn_clickMakeCopyButton(){//非同期（async）指定
+				if(navigator.clipboard){
+					const s_clipText=await navigator.clipboard.readText();//クリップボードからテキストを取得（awaitより同期化）
+					if(s_clipText){//クリップボード テキストを取得できた時
+						$('#txa_text_pasted').val(s_clipText);
+						fn_createButtons();//txa_text_pastedをもとにコピー ボタン生成
+						fn_saveLocalStorage();//localStorageに「貼り付け」データを保存
+					}else{//クリップボード テキストを取得できない時
+						//NOP:何もしない
+					}
+				}else{
+					alert('クリップボード 機能が利用できない環境です');
+				}
+			}
+
+			//寄せ方向切り替え処理
+			function fn_clickBtnAlignChange(){
+				if($('#btn_align_change').html()=='→'){//「→」なら
+					$('.root').css('text-align','right');//全体を右寄せ
+					$('#btn_align_change').html('←');
+				}else{//「右寄せ」チェック オフ時
+					$('.root').css('text-align','left');//全体を左寄せ
+					$('#btn_align_change').html('→');
+				}
+			};
+
+			//txa_text_pastedをもとにコピー ボタン生成===================================================
+			function fn_createButtons(){
+				s_textPasted=$('#txa_text_pasted').val();//貼り付けられたテキスト
+				s_textPasted=fn_escapeBrInCell(s_textPasted);//★セル内改行 エスケープ処理
+
+				const ary_row=s_textPasted.split("\n");//各行ごとの配列に変換
+
+				const i_rows=ary_row.length;//貼り付けられたテキストの行数
+
+				//貼り付けられたテキストの最大列数を求める(TAB区切り)
+				i_cols=0;//最大列数（初期値=0）
+				if(i_rows>=1){
+					for(i=0;i<i_rows;i++){//行数分ループ
+						rec=ary_row[i];
+						ary_col=rec.split("\t");//TAB分割した配列に
+						if(ary_col.length>i_cols)i_cols=ary_col.length;
+					}
+				}
+
+				if((i_rows>=1)&&(i_cols>=1)){//ボタン化するデータがあるなら
+					if($('#rdo_mode_basic').prop('checked')){//「ベーシック」モード時
+						fn_createButtonsModeBasic(ary_row,i_rows,i_cols);//「ベーシック」モードでボタン生成
+					}else if($('#rdo_mode_pair').prop('checked')){//「ペア」モード時
+						if(i_cols==2){
+							fn_createButtonsModePair(ary_row,i_rows);//「ペア」モードでボタン生成
+						}else{
+							alert('「ペア」モードでは2列選択して下さい');
+						}
+					}else{
+					}
+				}
+			};
+
+			//「ベーシック」モードでボタン生成===========================================================
+			function fn_createButtonsModeBasic(a_ary_row,a_rows,a_cols){
+				s_html='';//生成されるhtml（tableとbuttonがメイン）
+
+				s_html+='<table>';
+				for(y=0;y<a_rows;y++){//行数分ループ
+					s_html+='<tr>';//trタグ開始
+					//
+					rec=a_ary_row[y];//１行を取り出す
+					ary_col=rec.split("\t");//TAB分割した配列に
+					for(x=0;x<ary_col.length;x++){//セル単位のループ
+						s_html+='<td>';//tdタグ開始
+						if(ary_col[x]!=''){//セルが空欄でないならば
+							//ボタンを生成
+							s_html+='<button class="btn_createdCopyButton" value="'+ary_col[x]+'">';//valはコピー内容
+							s_html+=ary_col[x];//セル内容をボタン表示
+							s_html+='</button>';
+						}
+						s_html+='</td>';//tdタグ終了
+					}
+					//
+					s_html+='</tr>';//trタグ終了
+				}
+				s_html+='</table>';
+				$('.root_main>div').html(s_html);//生成ボタンエリアにボタンを配置
+			}
+
+			//「ペア」モードでボタン生成=================================================================
+			function fn_createButtonsModePair(a_ary_row,a_rows){
+				s_html='';//生成されるhtml（tableとbuttonがメイン）
+
+				s_html+='<table>';
+				for(y=0;y<a_rows;y++){//行数分ループ
+					s_html+='<tr>';//trタグ開始
+					//
+					rec=a_ary_row[y];//１行を取り出す
+					ary_col=rec.split("\t");//TAB分割した配列に
+					if(ary_col.length==2){//「ペア」モードは2列が前提
+						if((ary_col[0]!='') && (ary_col[1]!='')){//表示内容もコピー内容も空欄でないならば
+							s_html+='<td>';//tdタグ開始
+							s_html+='<button class="btn_createdCopyButton" value="'+ary_col[1]+'">';//valはコピー内容
+							s_html+=ary_col[0];//セル内容をボタン表示
+							s_html+='</button>';
+							s_html+='</td>';//tdタグ終了
+						}
+					}
+					//
+					s_html+='</tr>';//trタグ終了
+				}
+				s_html+='</table>';
+				$('.root_main>div').html(s_html);
+			}
+
+			//localStorageからデータを呼び出す============================================================
+			//動作モード(rdo_mode_basic/rdo_mode_pair)と貼り付けテキスト(txa_text_pasted)を保存
+			function fn_loadLocalStorage(){
+				const s_rdo_mode=localStorage.getItem('rdo_mode');//動作モード(rdo_mode_basic/rdo_mode_pair)
+				const s_btn_align_change=localStorage.getItem('btn_align_change');//「右寄せ」チェック状態
+				const s_txa_text_pasted=localStorage.getItem('txa_text_pasted');//貼り付けテキスト
+				//
+				$('#'+s_rdo_mode).prop('checked',true);//動作モードをチェックする
+				$('#btn_align_change').html(s_btn_align_change);//寄せ方向復元
+				$('#txa_text_pasted').val(s_txa_text_pasted);//貼り付けテキストを設定する
+			}
+
+			//localStorageにデータを保存===================================================================
+			//動作モード(rdo_mode_basic/rdo_mode_pair)と貼り付けテキスト(txa_text_pasted)を保存
+			function fn_saveLocalStorage(){
+				localStorage.setItem('rdo_mode',$('input[name="rdo_mode"]:checked').attr('id'));//動作モード(rdo_mode_basic/rdo_mode_pair)
+				localStorage.setItem('txa_text_pasted',$('#txa_text_pasted').val());//貼り付けテキスト(txa_text_pasted)
+			}
+
+			//セル内改行 エスケープ処理====================================================================
+			function fn_escapeBrInCell(a_str) {
+				s_str=a_str;//戻り値
+				//
+				//const s_matchPattern='"((.*?\n.*?)+?)"';//セル内改行検出パターン："で挟まれた中に１つ以上の改行がある
+				const s_matchPattern='"(([^"]*?\n[^"]*?)+?)"';//セル内改行検出パターン："で挟まれた中に１つ以上の改行がある
+				ary_match=s_str.match(s_matchPattern);//パターン検出
+				while(ary_match){//パターン検出されている間ループ
+					s_cnv=ary_match[0];//変換後文字列
+					s_cnv=s_cnv.replace(/"/g,'');//"除去
+					s_cnv=s_cnv.replace(/\n/g,'<br>');//改行→<br>変換
+					s_str=s_str.replace(ary_match[0],s_cnv);//元の文字列に変換適用
+					//
+					ary_match=s_str.match(s_matchPattern);//次のパターン検出
+				}
+				//
+				return s_str;
+			};
+		});
+	</script>
+	
+	</body>
+</html>

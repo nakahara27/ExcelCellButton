@@ -1,0 +1,167 @@
+body{
+	font-family: Roboto, "Yu Gothic Medium", "游ゴシック Medium", YuGothic, "游ゴシック体", "ヒラギノ角ゴ Pro W3", "メイリオ", sans-serif;
+	line-height: 1.75;
+	font-size: 16px;
+}
+
+/*　パディングをサイズ内側にする処理　*/
+* {
+	padding:0;
+	margin:0;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-o-box-sizing: border-box;
+	-ms-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.root{
+	margin:1px 10px;
+	text-align: left;
+}
+
+.root_top{
+	display: inline-block;
+	/* background-color: blue; */
+}
+
+.root_top_title{/*「テキスト文字 → コピーボタン化 ツール」*/
+	display:flex;
+	margin:5px 0;
+}
+
+.root_top_title_main{
+	padding:0 0.5em;
+	font-size:18px;
+	text-align:center;
+	box-shadow:0px 0px 5px 3px rgba(0, 0, 0, 0.2) inset;
+}
+
+.root_top_panel>div{/*操作パネル*/
+	display:flex;
+	margin:0 0.5em;
+}
+
+.root_top_panel_mode{
+	padding:0 0.5em;
+	border:1px silver solid;
+}
+
+.btn_help{/*ヘルプ ボタン*/
+	/*display: inline-block;*/
+	position: relative;
+	/*text-decoration: none;*/
+	color:green;
+	height:1.8em;
+	width:3em;
+	margin:0 5px;
+	padding:3px;
+	/*border-radius: 1px;*/
+	text-align: center;
+	overflow: hidden;
+	font-weight: bold;
+	background: linear-gradient(#eeeeee 0%, #bbbbbb 100%);
+	text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.66);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
+}
+
+.btn_align_change{/*寄せ方向切り替えボタン*/
+	/*display: inline-block;*/
+	position: relative;
+	/*text-decoration: none;*/
+	color:green;
+	height:1.8em;
+	width:2.5em;
+	margin:0 5px;
+	padding:3px;
+	/*border-radius: 1px;*/
+	text-align: center;
+	overflow: hidden;
+	font-weight: bold;
+	background: linear-gradient(#eeeeee 0%, #bbbbbb 100%);
+	text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.66);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
+}
+
+.btn_clear{/*クリアボタン*/
+	/*display: inline-block;*/
+	position: relative;
+	/*text-decoration: none;*/
+	color:red;
+	height:1.8em;
+	width:4em;
+	margin:0 5px;
+	padding:3px;
+	/*border-radius: 1px;*/
+	text-align: center;
+	overflow: hidden;
+	font-weight: bold;
+	background: linear-gradient(#eeeeee 0%, #bbbbbb 100%);
+	text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.66);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
+}
+
+btn:hover{
+	cursor: pointer;
+}
+
+.root_main{
+	border-top:2px silver solid ;
+}
+
+.root_main>div{
+	display:inline-block;
+	/* background-color: red; */
+}
+
+.txa_text_pasted{
+	width: auto;
+	height: auto;
+}
+
+.root_pasted{
+	display: none;
+	width: 100%;
+	height:100%;
+}
+
+.spn_makeCopyButton{/*Excelなどでコピー操作後に*/
+	font-size:1.2em;
+	font-weight:bold;
+	color:#668ad8;/*ボタン色*/
+}
+
+.btn_makeCopyButton{/*コピーボタン生成*/
+	display: inline-block;
+	margin: 5px;
+	padding: 2px 2em;
+	text-decoration: none;
+	background: #668ad8;/*ボタン色*/
+	color: #FFF;
+	border-bottom: solid 4px #627295;
+	border-radius: 3px;
+	font-size: small;
+}
+.btn_makeCopyButton:hover{
+	cursor: pointer;
+}
+
+.btn_createdCopyButton{
+	display: inline-block;
+	position: relative;
+	text-decoration: none;
+	color:#000000;
+	margin: 5px;
+	padding: 4px 8px;
+	border-radius: 5px;
+	text-align: left;
+	overflow: hidden;
+	font-weight: bold;
+	background: linear-gradient(#eeeeee 0%, #bbbbbb 100%);
+	text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.66);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
+}
+.btn_createdCopyButton:hover{
+	cursor: pointer;
+}
+
